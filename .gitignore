@@ -32,3 +32,6 @@
 *.app
 
 .vscode/*
+
+output.txt
+plot.png
