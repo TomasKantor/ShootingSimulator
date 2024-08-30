@@ -126,7 +126,6 @@ position update(entt::registry &registry, float dt) {
     update_velocity(registry, dt);
     update_position(registry, dt);
     update_acceleration(registry);
-    print_position_and_velocity(registry);
     return get_bullet_position(registry);
 }
 
@@ -204,6 +203,7 @@ position simulate(position start, position aim, float dt, float bullet_mass, flo
     // update bullet position until it is behind the target
     for(int i = 0; i < MAX_ITERATIONS; i++) {
         current_position = update(registry, dt);
+        print_position_and_velocity(registry);
         if(is_behind(current_position, start, aim)) {
             break;
         }
