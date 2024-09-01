@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cmath>
+#include <vector>
 
 #include "entt/entt.hpp"
 
@@ -175,7 +176,7 @@ bool is_behind(position pos, position start, position target){
 /// @param bullet_mass mass of the bullet 
 /// @param velocity_init initial velocity of the bullet
 /// @return closest horizontal position to target
-position simulate(position start, position aim, float dt, float bullet_mass, float velocity_init) {
+position simulate(position start, position aim, float dt, float bullet_mass, float velocity_init, std::vector<position> * history) {
     entt::registry registry;
 
     // calculate velocity components
@@ -198,12 +199,13 @@ position simulate(position start, position aim, float dt, float bullet_mass, flo
     float min_distance = get_horizontal_distance(start, aim);
     position closest_position = start;
     position current_position;
-    print_position_and_velocity(registry);
 
     // update bullet position until it is behind the target
     for(int i = 0; i < MAX_ITERATIONS; i++) {
         current_position = update(registry, dt);
-        print_position_and_velocity(registry);
+        if(history != nullptr) {
+            history->push_back(current_position);
+        }
         if(is_behind(current_position, start, aim)) {
             break;
         }

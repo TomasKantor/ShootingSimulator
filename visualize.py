@@ -1,48 +1,33 @@
 import csv
 import matplotlib.pyplot as plt
 from math import sqrt
+import json
+import sys
+
+if len(sys.argv) < 2:
+    print('Usage: python visualize.py <file_path>')
+    sys.exit(1)
+
+file_path = sys.argv[1]
+
+def convert_to_2d(pos):
+    return sqrt(pos[0]*pos[0]+pos[2]*pos[2]), pos[1]
+
+with open(file_path, mode='r') as f:
+    data = json.load(f)
+
+    start_h, start_v = convert_to_2d(data["start"])
+    plt.plot(start_h, start_v, 'gx')
+
+    target_h, target_v = convert_to_2d(data["target"])
+    plt.plot(target_h, target_v, 'rx')
 
 
-file_path = 'output.txt'
-numbers_list = []
-pos_y = []
-pos_x = []
+    for i, curve in enumerate(data["curves"]):
+        curve_x, curve_y = zip(*[convert_to_2d(pos) for pos in curve])
+        plt.plot(curve_x, curve_y, label=f'Curve {i+1}')
 
-with open(file_path, mode='r') as csv_file:
-    csv_reader = csv.reader(csv_file)
-    for row in csv_reader:
-        numbers_list.append([float(item.strip()) for item in row])
-
-    for row in numbers_list:
-        pos_y.append(row[1])
-        x = sqrt(row[0]**2 + row[2]**2)
-        pos_x.append(x)
-
-
-    curves_x = []
-    curves_y = []
-    current_x = []
-    current_y = []
-    for x, y in zip(pos_x, pos_y):
-        if x == 0:
-            curves_x.append(current_x)
-            curves_y.append(current_y)
-            current_x = [x]
-            current_y = [y]
-        else:
-            current_x.append(x)
-            current_y.append(y)
-
-
-    max_distance = max(max(pos_x), max(pos_y))
-    min_distance = min(pos_y)
-    plt.ylim(min(pos_y), max_distance)
-
-    plt.plot(pos_x[:1], pos_y[:1], 'gx')
-    plt.plot(pos_x[1:2], pos_y[1:2], 'rx')
-
-    for i, (x, y) in enumerate(zip(curves_x[2:], curves_y[2:])):
-        plt.plot(x, y, label=f'Curve {i+1}')
+    plt.axis('equal')
     plt.legend()
     plt.xlabel('Horizontal position')
     plt.ylabel('Vertical Position')
