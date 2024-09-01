@@ -1,17 +1,35 @@
 #include <iostream>
 #include <cmath>
+#include <fstream>
 
+#include "json/json.hpp"
 #include "entt/entt.hpp"
 #include "simulation.cpp"
 
-int main() {
+int main(int argc, char *argv[]) {
+
+    using json = nlohmann::json;
+
+    if(argc != 2) {
+        std::cerr << "Usage: " << argv[0] << " input.json" << std::endl;
+        return 1;
+    }
+
+    std::ifstream f(argv[1]);
+    json input_data = json::parse(f);
     
-    float dt = 0.001f;
+    float dt = input_data["step"];
     position target{40.0f, 0.0f, 45.0f};
-    float velocity_init = 30.0f;
+    target.x = input_data["target"][0];
+    target.y = input_data["target"][1];
+    target.z = input_data["target"][2];
+    float velocity_init = input_data["velocity"];
 
     position start{0.0f, 0.0f, 0.0f};
-    float bullet_mass = 0.05f;
+    start.x = input_data["start"][0];
+    start.y = input_data["start"][1];
+    start.z = input_data["start"][2];
+    float bullet_mass = input_data["mass"];
 
     position aim = target;
 
