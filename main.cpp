@@ -40,31 +40,27 @@ int main(int argc, char *argv[]) {
 
     position aim = target;
 
-    std::cerr << start.x << ", " << start.y << ", " << start.z <<  std::endl;
-    std::cerr << aim.x << ", " << aim.y << ", " << aim.z <<  std::endl;
-
     json output_data;
     output_data["start"] = {start.x, start.y, start.z};
     output_data["target"] = {target.x, target.y, target.z};
     
     std::vector<std::vector<position>> curves;
     
-
+    velocity vel;
     for(int i = 0; i < MAX_SHOTS; i++) {
         std::vector<position> curve;
-        position closest_position = simulate(start, aim, dt, bullet_mass, velocity_init, &curve);
+        vel = aim_with_gravity(start, aim, velocity_init);
+        position closest_position = simulate(start, aim, dt, bullet_mass, vel, &curve);
         curves.push_back(curve);
         // correct aim based on closest position
         float correction_y = target.y - closest_position.y;
         aim.y += correction_y;
         float min_distance = get_distance(closest_position, target);
-        std::cerr << "Shot " << i << " min_distance: " << min_distance << " m" << std::endl;
+        std::cerr << "Shot " << i << " min distance: " << min_distance << " m\tlaunch angle: " << get_launch_angle(vel)*RADIAN_TO_DEGREE << "°" << std::endl;
     }
 
-    std::cerr << "Launch angle: " << get_launch_angle(start, aim)*RADIAN_TO_DEGREE << "°" << std::endl;
-
     output_data["curves"] = curves;
-    output_data["angle"] = get_launch_angle(start, aim)*RADIAN_TO_DEGREE;
+    output_data["angle"] = get_launch_angle(vel)*RADIAN_TO_DEGREE;
 
     std::ofstream o(argv[2]);
     o << output_data.dump(4) << std::endl;

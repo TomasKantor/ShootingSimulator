@@ -169,6 +169,71 @@ bool is_behind(position pos, position start, position target){
 }
 
 
+/// @brief Get optimal horizontal velocity to hit target assuming no air drag
+/// @param start starting position
+/// @param aim position to aim at
+/// @param velocity velocity of the bullet at the start
+/// @return optiomal horizontal velocity
+float get_optimal_horizontal_velocity(position start, position aim, float velocity) {
+    float sh = get_horizontal_distance(start, aim);
+    float sv = aim.y - start.y;
+    float sv2 = sv*sv;
+    float sh2 = sh*sh;
+    float sh4 = sh2*sh2;
+    float a = sv2 + sh2;
+    float b = -sv*sh2*(-GRAVITY) -velocity*velocity*sh2;
+    float c = GRAVITY*GRAVITY*sh4/4;
+
+    float discriminant = b*b - 4*a*c;
+    if(discriminant < 0) {
+        return -1;
+    }
+    float v1 = (-b + sqrt(discriminant))/(2*a);
+    float v2 = (-b - sqrt(discriminant))/(2*a);
+    // std::cout << "v1: " << sqrt(v1) << " v2: " << sqrt(v2) << std::endl;
+    float v = std::max(v1, v2);
+    
+    if(v > 0) {
+        return sqrt(v);
+    }
+    return -1;
+}
+
+
+/// @brief Get velocty vector to aim strait at target
+/// @param start starting position
+/// @param aim position to aim at
+/// @param velocity velocity of the bullet at the start
+/// @return velocity vector
+velocity aim_strait(position start, position aim, float velocity) {
+    float dx = aim.x - start.x;
+    float dy = aim.y - start.y;
+    float dz = aim.z - start.z;
+    float distance = sqrt(dx*dx + dy*dy + dz*dz);
+    float vx = velocity*dx/distance;
+    float vy = velocity*dy/distance;
+    float vz = velocity*dz/distance;
+    return {vx, vy, vz};
+}
+
+/// @brief Get velocty vector to hit target assuming gravity and no air drag
+/// @param start starting position
+/// @param aim position to aim at
+/// @param velocity velocity of the bullet at the start
+/// @return velocity vector
+velocity aim_with_gravity(position start, position aim, float velocity){
+    float vh = get_optimal_horizontal_velocity(start, aim, velocity);
+    float vy = sqrt(velocity*velocity - vh*vh);
+    float dx = aim.x - start.x;
+    float dz = aim.z - start.z;
+    float dh = sqrt(dx*dx + dz*dz);
+    float vx = vh*dx/dh;
+    float vz = vh*dz/dh;
+    return {vx, vy, vz};
+}
+
+
+
 /// @brief Simulates bullet trajectory
 /// @param start starting position
 /// @param aim point to aim at, not necessarily the target
@@ -176,22 +241,13 @@ bool is_behind(position pos, position start, position target){
 /// @param bullet_mass mass of the bullet 
 /// @param velocity_init initial velocity of the bullet
 /// @return closest horizontal position to target
-position simulate(position start, position aim, float dt, float bullet_mass, float velocity_init, std::vector<position> * history) {
+position simulate(position start, position aim, float dt, float bullet_mass, velocity vel, std::vector<position> * history) {
     entt::registry registry;
-
-    // calculate velocity components
-    float dx = aim.x - start.x;
-    float dy = aim.y - start.y;
-    float dz = aim.z - start.z;
-    float distance = sqrt(dx*dx + dy*dy + dz*dz);
-    float vx = velocity_init*dx/distance;
-    float vy = velocity_init*dy/distance;
-    float vz = velocity_init*dz/distance;
 
     // create bullet entity and add components
     const auto entity = registry.create();
     registry.emplace<position>(entity, start.x, start.y, start.z);
-    registry.emplace<velocity>(entity, vx, vy, vz);
+    registry.emplace<velocity>(entity, vel.dx, vel.dy, vel.dz);
     registry.emplace<acceleration>(entity, 0.0f, -GRAVITY, 0.0f);
     registry.emplace<mass>(entity, bullet_mass);
 
@@ -228,4 +284,14 @@ float get_launch_angle(position start, position target){
     float horizontal_distance = get_horizontal_distance(start, target);
     float vertical_distance = target.y - start.y;
     return atan(vertical_distance / horizontal_distance);
+}
+
+
+/// @brief Get angle of velocity vector
+/// @param vel 
+/// @return angle in radians
+float get_launch_angle(velocity vel){
+    float horizontal_velocity = sqrt(vel.dx*vel.dx + vel.dz*vel.dz);
+    float vertical_velocity = vel.dy;
+    return atan(vertical_velocity / horizontal_velocity);
 }
