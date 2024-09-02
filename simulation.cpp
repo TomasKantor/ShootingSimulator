@@ -11,7 +11,7 @@ const float BULLET_AREA = 0.0005067; // 7.62 mm bullet
 const float RADIAN_TO_DEGREE = 180.0/3.14159265359;
 
 const int MAX_ITERATIONS = 10000;
-const int MAX_SHOTS = 1;
+const int MAX_SHOTS = 5;
 
 struct position {
     float x;
