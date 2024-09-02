@@ -11,7 +11,7 @@ const float BULLET_AREA = 0.0005067; // 7.62 mm bullet
 const float RADIAN_TO_DEGREE = 180.0/3.14159265359;
 
 const int MAX_ITERATIONS = 10000;
-const int MAX_SHOTS = 5;
+const int MAX_SHOTS = 4;
 
 struct position {
     float x;
@@ -190,7 +190,6 @@ float get_optimal_horizontal_velocity(position start, position aim, float veloci
     }
     float v1 = (-b + sqrt(discriminant))/(2*a);
     float v2 = (-b - sqrt(discriminant))/(2*a);
-    std::cout << "v1: " << sqrt(v1) << " v2: " << sqrt(v2) << std::endl;
     float v = std::max(v1, v2);
     
     if(v > 0) {
@@ -206,8 +205,6 @@ float get_optimal_horizontal_velocity(position start, position aim, float veloci
 /// @return optimal vertical velocity
 float get_optimal_vertical_velocity(position start, position aim, float horizontal_velocity) {
     float sh = get_horizontal_distance(start, aim);
-    std::cout << "v: " << horizontal_velocity << std::endl;
-    std::cout << "sh: " << sh << std::endl;
     float t = std::abs(sh/horizontal_velocity);
     float sv = aim.y - start.y;
     float v = (sv + 0.5*GRAVITY*t*t)/t;
