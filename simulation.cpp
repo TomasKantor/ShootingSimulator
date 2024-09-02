@@ -11,7 +11,7 @@ const float BULLET_AREA = 0.0005067; // 7.62 mm bullet
 const float RADIAN_TO_DEGREE = 180.0/3.14159265359;
 
 const int MAX_ITERATIONS = 10000;
-const int MAX_SHOTS = 5;
+const int MAX_SHOTS = 1;
 
 struct position {
     float x;
@@ -190,13 +190,28 @@ float get_optimal_horizontal_velocity(position start, position aim, float veloci
     }
     float v1 = (-b + sqrt(discriminant))/(2*a);
     float v2 = (-b - sqrt(discriminant))/(2*a);
-    // std::cout << "v1: " << sqrt(v1) << " v2: " << sqrt(v2) << std::endl;
+    std::cout << "v1: " << sqrt(v1) << " v2: " << sqrt(v2) << std::endl;
     float v = std::max(v1, v2);
     
     if(v > 0) {
         return sqrt(v);
     }
     return -1;
+}
+
+/// @brief Get optimal vertical velocity to hit target assuming no air drag, with known horizontal velocity
+/// @param start starting position
+/// @param aim position to aim at
+/// @param horizontal_velocity horizontal velocity of the bullet
+/// @return optimal vertical velocity
+float get_optimal_vertical_velocity(position start, position aim, float horizontal_velocity) {
+    float sh = get_horizontal_distance(start, aim);
+    std::cout << "v: " << horizontal_velocity << std::endl;
+    std::cout << "sh: " << sh << std::endl;
+    float t = std::abs(sh/horizontal_velocity);
+    float sv = aim.y - start.y;
+    float v = (sv + 0.5*GRAVITY*t*t)/t;
+    return v;
 }
 
 
@@ -223,7 +238,7 @@ velocity aim_strait(position start, position aim, float velocity) {
 /// @return velocity vector
 velocity aim_with_gravity(position start, position aim, float velocity){
     float vh = get_optimal_horizontal_velocity(start, aim, velocity);
-    float vy = sqrt(velocity*velocity - vh*vh);
+    float vy = get_optimal_vertical_velocity(start, aim, vh);
     float dx = aim.x - start.x;
     float dz = aim.z - start.z;
     float dh = sqrt(dx*dx + dz*dz);
